@@ -1,5 +1,6 @@
 # Mines
-A Minesweeper clone on C++ using raylib
+A Minesweeper clone on C++ using raylib.
+
 RED = MINE
 BLUE = FLAG
 

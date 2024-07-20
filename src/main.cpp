@@ -1,19 +1,7 @@
-/*
-TO DO:
-- Reveal all 0 nearbyMines cells together at once.
-- Add lose and win conditions.
-- Make sure first click is never a mine.
-- Add timer.
-- Display number of mines flagged/remaining.
-- Add flag texture instead of blue square.
-- Make the colours of the mine number different for different numbers.
-- Add difficulty options (9x9, 16x16, 30x16,...),
-*/
-
 
 #include <iostream>
 #include <raylib.h>
-#include <raymath.h>
+
 
 #define ROWS 9
 #define COLS 9
@@ -46,7 +34,7 @@ class Game{
 
         
         if(hasMine){ // lose condition
-
+            
         }
     }
 
@@ -77,6 +65,8 @@ class Game{
     }
 };
 
+
+
 int main()
 {
     const int screenWidth = 540;
@@ -86,7 +76,7 @@ int main()
     int minesToPlace = 10;
     int indexi, indexj;
 
-    InitWindow(screenWidth, screenHeight, "Miensweeper");
+    InitWindow(screenWidth, screenHeight, "Mines");
     SetTargetFPS(60);
 
 
@@ -142,7 +132,7 @@ int main()
                     }
                     cell[indexi][indexj].nearbyMines = mineCount;
                 }
-                std::cout<<mineCount<<std::endl;
+
             }
 
         }

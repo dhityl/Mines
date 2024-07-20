@@ -1,5 +1,9 @@
 # Mines
 A Minesweeper clone on C++ using raylib
+RED = MINE
+BLUE = FLAG
+
+left click to reveal a square, right click to flag it.
 
 
 ## __TO DO:__

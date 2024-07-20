@@ -1,16 +1,15 @@
-
 #include <iostream>
 #include <raylib.h>
-
+#include <raymath.h>
 
 #define ROWS 9
 #define COLS 9
 #define CELLSIZE 60
 
 class Game{
-    int cellSide;
+    int cellSide, cellx, celly;
 
-    public:
+public:
     bool isRevealed;
     bool isFlagged;
     bool hasMine;
@@ -28,130 +27,138 @@ class Game{
         isFlagged = !isFlagged;
     }
 
-
-    void cellRevealed(){
+    void revealCell(){
         isRevealed = true;
 
-        
-        if(hasMine){ // lose condition
-            
+        if (hasMine){ // lose condition
+
         }
     }
 
-    void Draw(int cellx, int celly){
-        DrawRectangleLines(cellx*cellSide,celly*cellSide, cellSide, cellSide, WHITE);
+    void Draw(int x, int y){
+        cellx = x;
+        celly = y;
+        DrawRectangleLines(cellx * cellSide, celly * cellSide, cellSide, cellSide, WHITE);
 
-
-        if(isRevealed){
-            if(hasMine){
-                DrawRectangle(cellx*cellSide +5,celly*cellSide +5, cellSide -10, cellSide -10, RED);
-            }
-
-
+        if (isRevealed){
+            if (hasMine){
+                DrawRectangle(cellx * cellSide + 5, celly * cellSide + 5, cellSide - 10, cellSide - 10, RED);
+            } 
             else{
-            DrawRectangle(cellx*cellSide +5,celly*cellSide +5, cellSide -10, cellSide -10, LIGHTGRAY);
-            if(nearbyMines!=0){
-                DrawText(TextFormat("%d", nearbyMines), cellx*cellSide + 10, celly*cellSide +10, 40, DARKGRAY);
-            }
-            
+                DrawRectangle(cellx * cellSide + 5, celly * cellSide + 5, cellSide - 10, cellSide - 10, LIGHTGRAY);
+                if (nearbyMines != 0) {
+                    DrawText(TextFormat("%d", nearbyMines), cellx * cellSide + 10, celly * cellSide + 10, 40, DARKGRAY);
+                }
             }
 
-        }
-
+        } 
         else if(isFlagged){
-            DrawRectangle(cellx*cellSide +5,celly*cellSide +5, cellSide -10, cellSide -10, BLUE);
+            DrawRectangle(cellx * cellSide + 5, celly * cellSide + 5, cellSide - 10, cellSide - 10, BLUE);
         }
-
     }
 };
 
+Game cell[ROWS][COLS];
 
+void revealEmptyCells(int i, int j){
+    // return if cell out of range
+    if (i < 0 || i >= ROWS || j < 0 || j >= COLS || cell[i][j].isRevealed || cell[i][j].hasMine) {
+        return;
+    }
+    cell[i][j].revealCell();
 
-int main()
-{
+    if (cell[i][j].nearbyMines == 0){
+        for (int m = -1; m <= 1; m++) {
+            for (int n = -1; n <= 1; n++){
+                if (m != 0 || n != 0) {
+                    revealEmptyCells(i + m, j + n);
+                }
+            }
+        }
+    }
+}
+
+void countMines(){
+    for (int i = 0; i < ROWS; i++){
+        for (int j = 0; j < COLS; j++){
+            if (!cell[i][j].hasMine){
+                int mineCount = 0;
+                for (int m = -1; m <= 1; m++){
+                    for (int n = -1; n <= 1; n++){
+                        int ni = i + n;
+                        int mj = j + m;
+                        if (ni >= 0 && ni < ROWS && mj >= 0 && mj < COLS && cell[ni][mj].hasMine){
+                            mineCount++;
+                        }
+                    }
+                }
+                cell[i][j].nearbyMines = mineCount;
+            }
+        }
+    }
+}
+
+void placeMines(int minesToPlace){
+    while (minesToPlace > 0){
+        int i = GetRandomValue(0, ROWS - 1);
+        int j = GetRandomValue(0, COLS - 1);
+        if (!cell[i][j].hasMine){
+            cell[i][j].hasMine = true;
+            minesToPlace--;
+        }
+    }
+}
+
+int main() {
     const int screenWidth = 540;
     const int screenHeight = 540;
 
-    Game cell[ROWS][COLS];
-    int minesToPlace = 10;
     int indexi, indexj;
+    int minesToPlace = 10;
 
     InitWindow(screenWidth, screenHeight, "Mines");
     SetTargetFPS(60);
 
+    // Place mines and count nearby mines
+    placeMines(minesToPlace);
+    countMines();
 
-
-
-    while(!WindowShouldClose()){
+    while (!WindowShouldClose()){
         BeginDrawing();
-
-        
-        // generate mines
-        while (minesToPlace > 0){
-            int i = rand() % ROWS;
-            int j = rand() % COLS;
-            if(!cell[i][j].hasMine){
-                cell[i][j].hasMine = true;
-                minesToPlace--;
-            }
-        }
+        ClearBackground(BLACK);
 
         // flag cell on right click
-        if(IsMouseButtonPressed(1)){
-            indexi = GetMouseX()/60;
-            indexj = GetMouseY()/60;
-            if(!cell[indexi][indexj].isRevealed){
+        if (IsMouseButtonPressed(1)){
+            indexi = GetMouseX() / CELLSIZE;
+            indexj = GetMouseY() / CELLSIZE;
+            if (!cell[indexi][indexj].isRevealed){
                 cell[indexi][indexj].toggleFlag();
             }
         }
 
         // reveal cell on left click
-        if(IsMouseButtonPressed(0)){
-            indexi = GetMouseX()/60;
-            indexj = GetMouseY()/60;
-            if(!cell[indexi][indexj].isFlagged){
-                cell[indexi][indexj].cellRevealed();
-                cell[indexi][indexj].nearbyMines = 0 ;
-            
-                // count mines around the cell
-                int mineCount = 0;
-                if(!cell[indexi][indexj].hasMine){
-
-                    for(int m = -1; m <= 1; m++){
-                        for(int n = -1; n <= 1; n++){
-
-                            int ni = indexi + n;
-                            int mj = indexj + m;
-
-                            if(ni < ROWS && ni >= 0 && mj < COLS && mj >= 0){    
-                                if(cell[ni][mj].hasMine){
-                                    mineCount++;
-                                }
-                            }
-                        }
-                    }
-                    cell[indexi][indexj].nearbyMines = mineCount;
+        if (IsMouseButtonPressed(0)){
+            indexi = GetMouseX() / CELLSIZE;
+            indexj = GetMouseY() / CELLSIZE;
+            if (!cell[indexi][indexj].isFlagged){
+                if (!cell[indexi][indexj].hasMine){
+                    revealEmptyCells(indexi, indexj);
+                } else {
+                    cell[indexi][indexj].revealCell();
                 }
-
             }
-
         }
 
-
-
         // draw 9x9 cells
-        for(int i = 0; i < ROWS; i++){
-            for(int j = 0; j < COLS; j++){
+        for (int i = 0; i < ROWS; i++){
+            for (int j = 0; j < COLS; j++){
                 cell[i][j].Draw(i, j);
             }
         }
 
-
-        ClearBackground(BLACK);
         EndDrawing();
     }
 
     CloseWindow();
     return 0;
 }
-

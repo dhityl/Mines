@@ -1,7 +1,7 @@
 # Mines
 A Minesweeper clone on C++ using raylib.
 
-RED = MINE
+RED = MINE, 
 BLUE = FLAG
 
 left click to reveal a square, right click to flag it.

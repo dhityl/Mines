@@ -2,7 +2,7 @@
 A Minesweeper clone on C++ using raylib.
 
 
-##__How To Play:__
+## __How To Play:__
 
 RED = MINE, 
 BLUE = FLAG

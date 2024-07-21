@@ -1,13 +1,15 @@
 #include <iostream>
 #include <raylib.h>
-#include <raymath.h>
 
 #define ROWS 9
 #define COLS 9
 #define CELLSIZE 60
 
 bool lost = false;
+
 char loseMessage[] = "YOU LOST";
+char winMessage[] = "YOU WON!";
+int revealedCells = 0;
 
 class Game{
     int cellSide, cellx, celly;
@@ -69,6 +71,7 @@ void revealEmptyCells(int i, int j){
         return;
     }
     cell[i][j].revealCell();
+    revealedCells++;
 
     if (cell[i][j].nearbyMines == 0){
         for (int m = -1; m <= 1; m++) {
@@ -112,12 +115,23 @@ void placeMines(int minesToPlace){
     }
 }
 
+void revealAll(){
+    for (int i = 0; i < ROWS; i++){
+        for (int j = 0; j < COLS; j++){
+            cell[i][j].revealCell();
+        }
+    }  
+}
+
+
 int main() {
     const int screenWidth = 540;
     const int screenHeight = 540;
 
     int indexi, indexj;
     int minesToPlace = 10;
+    int flaggedMines = 0;
+
 
     InitWindow(screenWidth, screenHeight, "Mines");
     SetTargetFPS(60);
@@ -137,6 +151,16 @@ int main() {
             if (!cell[indexi][indexj].isRevealed){
                 cell[indexi][indexj].toggleFlag();
             }
+
+            if(cell[indexi][indexj].hasMine){
+                if(cell[indexi][indexj].isFlagged){
+                    flaggedMines++;
+                }
+                else if(!cell[indexi][indexj].isFlagged){
+                    flaggedMines--;
+                }
+                
+            }
         }
 
         // reveal cell on left click
@@ -151,6 +175,8 @@ int main() {
                     lost = true;
                 }
             }
+            
+            revealedCells++;
         }
 
         // draw 9x9 cells
@@ -161,8 +187,15 @@ int main() {
         }
 
         if(lost){
-            DrawRectangle(0,0,screenWidth,screenHeight, LIGHTGRAY);
-            DrawText(loseMessage, screenWidth/2 - MeasureText(loseMessage, 80)/2, screenHeight/3, 80, BLACK);
+            DrawRectangle(0,0,screenWidth,screenHeight, Fade(DARKGRAY, 0.8f));
+            DrawText(loseMessage, screenWidth/2 - MeasureText(loseMessage, 80)/2, screenHeight/3, 80, RED);
+            revealAll();
+        }
+
+        if(flaggedMines == minesToPlace){
+            DrawRectangle(0,0,screenWidth,screenHeight, Fade(DARKGRAY, 0.8f));
+            DrawText(winMessage, screenWidth/2 - MeasureText(winMessage, 80)/2, screenHeight/3, 80, GREEN);
+            revealAll();
         }
 
         EndDrawing();

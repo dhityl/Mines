@@ -6,6 +6,9 @@
 #define COLS 9
 #define CELLSIZE 60
 
+bool lost = false;
+char loseMessage[] = "YOU LOST";
+
 class Game{
     int cellSide, cellx, celly;
 
@@ -31,7 +34,7 @@ public:
         isRevealed = true;
 
         if (hasMine){ // lose condition
-
+            lost = true;
         }
     }
 
@@ -145,6 +148,7 @@ int main() {
                     revealEmptyCells(indexi, indexj);
                 } else {
                     cell[indexi][indexj].revealCell();
+                    lost = true;
                 }
             }
         }
@@ -154,6 +158,11 @@ int main() {
             for (int j = 0; j < COLS; j++){
                 cell[i][j].Draw(i, j);
             }
+        }
+
+        if(lost){
+            DrawRectangle(0,0,screenWidth,screenHeight, LIGHTGRAY);
+            DrawText(loseMessage, screenWidth/2 - MeasureText(loseMessage, 80)/2, screenHeight/3, 80, BLACK);
         }
 
         EndDrawing();

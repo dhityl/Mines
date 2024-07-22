@@ -6,6 +6,7 @@
 #define CELLSIZE 60
 
 bool lost = false;
+bool won = false;
 
 char loseMessage[] = "YOU LOST";
 char winMessage[] = "YOU WON!";
@@ -186,13 +187,14 @@ int main() {
             }
         }
 
-        if(lost){
+        if(lost && !won){
             DrawRectangle(0,0,screenWidth,screenHeight, Fade(DARKGRAY, 0.8f));
             DrawText(loseMessage, screenWidth/2 - MeasureText(loseMessage, 80)/2, screenHeight/3, 80, RED);
             revealAll();
         }
 
         if(flaggedMines == minesToPlace){
+            won = true;
             DrawRectangle(0,0,screenWidth,screenHeight, Fade(DARKGRAY, 0.8f));
             DrawText(winMessage, screenWidth/2 - MeasureText(winMessage, 80)/2, screenHeight/3, 80, GREEN);
             revealAll();

@@ -23,6 +23,8 @@ public:
 
     Game(){
         cellSide = CELLSIZE;
+        cellx = -1;
+        celly = -1;
         nearbyMines = 0;
         isRevealed = false;
         isFlagged = false;
@@ -126,11 +128,11 @@ void revealAll(){
 
 
 int main() {
-    const int screenWidth = 540;
-    const int screenHeight = 540;
+    const int screenWidth = ROWS*CELLSIZE;
+    const int screenHeight = COLS*CELLSIZE;
 
     int indexi, indexj;
-    int minesToPlace = 10;
+    int minesToPlace = 0.1*(ROWS*COLS) + 2; // no. of mines = 10% of total cells + 2
     int flaggedMines = 0;
 
 

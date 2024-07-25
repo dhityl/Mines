@@ -1,6 +1,8 @@
 # Mines
 A Minesweeper clone on C++ using raylib.
 
+To run, open using the main.code-workspace file on VSCode and make sure raylib is installed on the default path (https://www.raylib.com/, click "Download" >> "No thanks, just take me to the downloads")
+
 
 ## __How To Play:__
 

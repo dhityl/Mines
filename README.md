@@ -18,5 +18,3 @@ BLUE = FLAG
 ![hippo](https://cdn.discordapp.com/attachments/570583753966223363/1267881542370197598/2024-07-3022-07-41-ezgif.com-video-to-gif-converter.gif?ex=66aa6633&is=66a914b3&hm=5e78129b9ebde75646c43452e2fa98b0d47a22c904417ba5b5edd5d61538ffd2&)
 
 
-## __TO DO:__
-- **Make sure first click is never a mine.**

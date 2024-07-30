@@ -1,8 +1,7 @@
 #include <iostream>
 #include <raylib.h>
-
-#define ROWS 9
-#define COLS 9
+#define ROWS 20
+#define COLS 20
 #define CELLSIZE 60
 
 bool lost = false;
@@ -103,10 +102,10 @@ void countMines(){
     }
 }
 
-void placeMines(int minesToPlace){
+void placeMines(int minesToPlace, int rows, int columns){
     while (minesToPlace > 0){
-        int i = GetRandomValue(0, ROWS - 1);
-        int j = GetRandomValue(0, COLS - 1);
+        int i = GetRandomValue(0, rows - 1);
+        int j = GetRandomValue(0, columns - 1);
         if (!cell[i][j].hasMine){
             cell[i][j].hasMine = true;
             minesToPlace--;
@@ -127,8 +126,9 @@ void displayTime(float start){
     int end = endTime;
     int minute = (end-start) / 60;
     int second = static_cast<int>(end-start) % 60;
-    DrawText(TextFormat("TIME: %d:%d", minute, second), 10, GetScreenHeight() - 30, 20, RAYWHITE);
+    DrawText(TextFormat("TIME: %d min %d sec", minute, second), 10, GetScreenHeight() - 30, 20, RAYWHITE);
 }
+
 
 void restart(int rows, int columns){
     int minesNo =  0.1*(rows*columns) + 2; // same as mines to place
@@ -141,7 +141,7 @@ void restart(int rows, int columns){
             cell[i][j].hasMine = false;
         }
     }
-    placeMines(minesNo);
+    placeMines(minesNo, rows, columns);
     countMines();
     won = false;
     lost = false;
@@ -153,12 +153,16 @@ void restart(int rows, int columns){
 
 
 int main() {
-    const int screenWidth = ROWS*CELLSIZE;
-    const int screenHeight = COLS*CELLSIZE;
+    // set minimum window size initially
+    int screenWidth = 540;
+    int screenHeight = 540;
 
+    int rows;
+    int columns;
     int indexi, indexj;
-    int minesToPlace = 0.1*(ROWS*COLS) + 2; // no. of mines = 10% of total cells + 2
+    int minesToPlace;
     int flaggedMines = 0;
+    bool difficultyChosen = false;
 
     char loseMessage[] = "YOU LOST";
     char winMessage[] = "YOU WON!";
@@ -168,89 +172,133 @@ int main() {
     InitWindow(screenWidth, screenHeight, "Mines"); // initialize window
     SetTargetFPS(60);
 
-    // Place mines and count nearby mines for each cell
-    placeMines(minesToPlace);
-    countMines();
 
     // main game loop
     while (!WindowShouldClose()){
         BeginDrawing();
         ClearBackground(BLACK);
 
-        // flag cell on right click
-        if(!gameOver && IsMouseButtonPressed(1)){
-            indexi = GetMouseX() / CELLSIZE;
-            indexj = GetMouseY() / CELLSIZE;
-            if (!cell[indexi][indexj].isRevealed){
-                cell[indexi][indexj].toggleFlag();
+        if(!difficultyChosen){
+            DrawRectangle(0,0, screenWidth, screenHeight, BLACK);
+            Vector2 mouse = GetMousePosition();
+            char chooseDiff[] = "Choose a difficulty";
+            char diff99[] = "9x9";
+            char diff1616[] = "16x16";
+            Rectangle button99 = {270, 240, 204, 54};
+            Rectangle button1616 = {270, 340, 204, 54};
+
+            DrawText(chooseDiff, screenWidth/2 - MeasureText(chooseDiff, 40)/2, 100, 40, RAYWHITE);
+
+            DrawRectangle(screenWidth/2 - 100, 240, 204, 54, RAYWHITE);
+            DrawRectangle(screenWidth/2 - 97, 242, 200, 50, LIGHTGRAY);
+            DrawText(diff99, screenHeight/2 - MeasureText(diff99, 30)/2, 250, 30, DARKGRAY);
+
+            DrawRectangle(screenWidth/2 - 100, 340, 204, 54, RAYWHITE);
+            DrawRectangle(screenWidth/2 - 97, 342, 200, 50, LIGHTGRAY);
+            DrawText(diff1616, screenHeight/2 - MeasureText(diff1616, 30)/2, 350, 30, DARKGRAY);
+
+            if(CheckCollisionPointRec(mouse, button99) && IsMouseButtonPressed(0)){
+                difficultyChosen = true;
+                rows = 9;
+                columns = 9;
+                screenWidth = 9*CELLSIZE;
+                screenHeight = 9*CELLSIZE;
+                minesToPlace = 0.1*(rows*columns) + 2; 
+
+                placeMines(minesToPlace, rows, columns);
+                countMines();
+                SetWindowSize(screenWidth, screenHeight);
             }
 
-            if(cell[indexi][indexj].hasMine){
-                if(cell[indexi][indexj].isFlagged){
-                    flaggedMines++;
+            if(CheckCollisionPointRec(mouse, button1616) && IsMouseButtonPressed(0)){
+                difficultyChosen = true;
+                rows = 16;
+                columns = 16;
+                screenWidth = 16*CELLSIZE;
+                screenHeight = 16*CELLSIZE;
+                minesToPlace = 0.1*(rows*columns) + 2;  
+
+                placeMines(minesToPlace, rows, columns);
+                countMines();
+                SetWindowSize(screenWidth, screenHeight);
+            }
+
+        }
+        else if(difficultyChosen){
+            // flag cell on right click
+            if(!gameOver && IsMouseButtonPressed(1)){
+                indexi = GetMouseX() / CELLSIZE;
+                indexj = GetMouseY() / CELLSIZE;
+                if (!cell[indexi][indexj].isRevealed){
+                    cell[indexi][indexj].toggleFlag();
                 }
-                else if(!cell[indexi][indexj].isFlagged){
-                    flaggedMines--;
+
+                if(cell[indexi][indexj].hasMine){
+                    if(cell[indexi][indexj].isFlagged){
+                        flaggedMines++;
+                    }
+                    else if(!cell[indexi][indexj].isFlagged){
+                        flaggedMines--;
+                    }
+                    
+                }
+            }
+
+            // reveal cell on left click
+            if(!gameOver && IsMouseButtonPressed(0)){
+                indexi = GetMouseX() / CELLSIZE;
+                indexj = GetMouseY() / CELLSIZE;
+                if (!cell[indexi][indexj].isFlagged){
+                    if (!cell[indexi][indexj].hasMine){
+                        revealEmptyCells(indexi, indexj);
+                    } else {  // lose condition
+                        cell[indexi][indexj].revealCell();
+                        lost = true;
+                        endTime = GetTime();
+                    }
                 }
                 
+                revealedCells++;
             }
-        }
 
-        // reveal cell on left click
-        if(!gameOver && IsMouseButtonPressed(0)){
-            indexi = GetMouseX() / CELLSIZE;
-            indexj = GetMouseY() / CELLSIZE;
-            if (!cell[indexi][indexj].isFlagged){
-                if (!cell[indexi][indexj].hasMine){
-                    revealEmptyCells(indexi, indexj);
-                } else {  // lose condition
-                    cell[indexi][indexj].revealCell();
-                    lost = true;
-                    endTime = GetTime();
+            // restart on pressing R on end screen
+            if(gameOver && IsKeyPressed(KEY_R)){
+                restart(rows, columns);
+            }
+
+            // draw cells
+            for (int i = 0; i < rows; i++){
+                for (int j = 0; j < columns; j++){
+                    cell[i][j].Draw(i, j);
                 }
             }
-            
-            revealedCells++;
-        }
 
-        // restart on pressing R on end screen
-        if(gameOver && IsKeyPressed(KEY_R)){
-            restart(ROWS, COLS);
-        }
+            if(lost && !won){ // if lost (clicked a mine)
+                gameOver = true;
+                DrawRectangle(0,0,screenWidth,screenHeight, Fade(DARKGRAY, 0.8f));
+                DrawText(loseMessage, screenWidth/2 - MeasureText(loseMessage, 80)/2, screenHeight/3, 80, RED);
+                DrawText(restartText, screenWidth/2 - MeasureText(restartText, 25)/2, screenHeight/3 + 80, 25, RAYWHITE);
+                
+                revealAll();
+                displayTime(startTime);
+            }
 
-        // draw 9x9 cells
-        for (int i = 0; i < ROWS; i++){
-            for (int j = 0; j < COLS; j++){
-                cell[i][j].Draw(i, j);
+
+            if(flaggedMines == minesToPlace){ // win condition
+                won = true;
+                endTime = GetTime();
+                flaggedMines++; // change flagged mines so it only triggers once
+            }
+
+            if(won){ // if won (flagged all mines)
+                gameOver = true;
+                DrawRectangle(0,0,screenWidth,screenHeight, Fade(DARKGRAY, 0.8f));
+                DrawText(winMessage, screenWidth/2 - MeasureText(winMessage, 80)/2, screenHeight/3, 80, GREEN);
+                DrawText(restartText, screenWidth/2 - MeasureText(restartText, 25)/2, screenHeight/3 + 80, 25, RAYWHITE);
+                revealAll();
+                displayTime(startTime);
             }
         }
-
-        if(lost && !won){ // if lost (clicked a mine)
-            gameOver = true;
-            DrawRectangle(0,0,screenWidth,screenHeight, Fade(DARKGRAY, 0.8f));
-            DrawText(loseMessage, screenWidth/2 - MeasureText(loseMessage, 80)/2, screenHeight/3, 80, RED);
-            DrawText(restartText, screenWidth/2 - MeasureText(restartText, 25)/2, screenHeight/3 + 80, 25, RAYWHITE);
-            
-            revealAll();
-            displayTime(startTime);
-        }
-
-
-        if(flaggedMines == minesToPlace){ // win condition
-            won = true;
-            endTime = GetTime();
-            flaggedMines++; // change flagged mines so it only triggers once
-        }
-
-        if(won){ // if won (flagged all mines)
-            gameOver = true;
-            DrawRectangle(0,0,screenWidth,screenHeight, Fade(DARKGRAY, 0.8f));
-            DrawText(winMessage, screenWidth/2 - MeasureText(winMessage, 80)/2, screenHeight/3, 80, GREEN);
-            DrawText(restartText, screenWidth/2 - MeasureText(restartText, 25)/2, screenHeight/3 + 80, 25, RAYWHITE);
-            revealAll();
-            displayTime(startTime);
-        }
-
         EndDrawing();
     }
 

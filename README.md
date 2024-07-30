@@ -18,5 +18,4 @@ BLUE = FLAG
 
 ## __TO DO:__
 - **Make sure first click is never a mine.**
-- Display number of mines flagged/remaining.
 - Add difficulty options (9x9, 16x16, 30x16,...).

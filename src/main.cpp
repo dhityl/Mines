@@ -130,6 +130,27 @@ void displayTime(float start){
     DrawText(TextFormat("TIME: %d:%d", minute, second), 10, GetScreenHeight() - 30, 20, RAYWHITE);
 }
 
+void restart(int rows, int columns){
+    int minesNo =  0.1*(rows*columns) + 2; // same as mines to place
+
+    // unreveal, unmine and unflag all cells
+    for(int i = 0; i < rows; i++){
+        for(int j = 0; j < columns; j++){
+            cell[i][j].isFlagged = false;
+            cell[i][j].isRevealed = false;
+            cell[i][j].hasMine = false;
+        }
+    }
+    placeMines(minesNo);
+    countMines();
+    won = false;
+    lost = false;
+    gameOver = false;
+}
+
+
+
+
 
 int main() {
     const int screenWidth = ROWS*CELLSIZE;
@@ -157,7 +178,7 @@ int main() {
         ClearBackground(BLACK);
 
         // flag cell on right click
-        if (!gameOver && IsMouseButtonPressed(1)){
+        if(!gameOver && IsMouseButtonPressed(1)){
             indexi = GetMouseX() / CELLSIZE;
             indexj = GetMouseY() / CELLSIZE;
             if (!cell[indexi][indexj].isRevealed){
@@ -176,7 +197,7 @@ int main() {
         }
 
         // reveal cell on left click
-        if (!gameOver && IsMouseButtonPressed(0)){
+        if(!gameOver && IsMouseButtonPressed(0)){
             indexi = GetMouseX() / CELLSIZE;
             indexj = GetMouseY() / CELLSIZE;
             if (!cell[indexi][indexj].isFlagged){
@@ -190,6 +211,11 @@ int main() {
             }
             
             revealedCells++;
+        }
+
+        // restart on pressing R on end screen
+        if(gameOver && IsKeyPressed(KEY_R)){
+            restart(ROWS, COLS);
         }
 
         // draw 9x9 cells

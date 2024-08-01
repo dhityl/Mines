@@ -9,7 +9,7 @@ bool won = false;
 bool gameOver = false;
 
 int revealedCells = 0;
-float startTime = GetTime(), endTime;
+float startTime, endTime;
 
 class Game{
     int cellSide, cellx, celly;
@@ -143,9 +143,6 @@ void restart(int rows, int columns){
     }
     placeMines(minesNo, rows, columns);
     countMines();
-    won = false;
-    lost = false;
-    gameOver = false;
 }
 
 
@@ -204,6 +201,7 @@ int main() {
                 screenWidth = 9*CELLSIZE;
                 screenHeight = 9*CELLSIZE;
                 minesToPlace = 0.1*(rows*columns) + 2; 
+                startTime = GetTime();
 
                 placeMines(minesToPlace, rows, columns);
                 countMines();
@@ -217,6 +215,7 @@ int main() {
                 screenWidth = 16*CELLSIZE;
                 screenHeight = 16*CELLSIZE;
                 minesToPlace = 0.1*(rows*columns) + 2;  
+                startTime = GetTime();
 
                 placeMines(minesToPlace, rows, columns);
                 countMines();
@@ -264,6 +263,11 @@ int main() {
             // restart on pressing R on end screen
             if(gameOver && IsKeyPressed(KEY_R)){
                 restart(rows, columns);
+
+                startTime = GetTime();
+                won = false;
+                lost = false;
+                gameOver = false;
             }
 
             // draw cells
